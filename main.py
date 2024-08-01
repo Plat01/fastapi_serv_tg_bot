@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, BackgroundTasks
 
+from app.api.routers import login, users, utils
 from app.tg_bot import bot, dispatcher as dp
 from app.config import settings
 
@@ -42,6 +43,10 @@ app: FastAPI = FastAPI(lifespan=lifespan)
 @app.get("/")
 async def root():
     return {"message": "FastAPI is running!"}
+
+app.include_router(login.router, prefix="/login", tags=["login"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(utils.router, prefix="/utils", tags=["utils"])
 
 
 # app.add_api_route(**router.updates_route)

@@ -1,7 +1,8 @@
 import typing
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 from aiogram.types.message import Message
+from sqlmodel import SQLModel
 
 
 class BotsUser(BaseModel):
@@ -17,11 +18,14 @@ class BotsUser(BaseModel):
     longitude: typing.Optional[float] = Field(default=None)
 
 
-async def build_user(message: Message) -> BotsUser:
-    return BotsUser(
-        chat_id=message.from_user.id,
-        username=message.from_user.username,
-        first_name=message.from_user.first_name,
-        last_name=message.from_user.last_name,
-        phone=message.contact.phone_number if message.contact else None
-    )
+class UserBase(SQLModel):
+    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    is_active: bool = True
+    is_superuser: bool = False
+    full_name: str | None = Field(default=None, max_length=255)
+
+class User(UserBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    hashed_password: str
+    items: list["Item"] = Relationship(back_populates="owner")
+

@@ -46,3 +46,5 @@ websockets==12.0
 yarl==1.9.4
 
 celery~=5.4.0
+sqlmodel~=0.0.21
+SQLAlchemy~=2.0.31
