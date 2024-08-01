@@ -1,0 +1,48 @@
+services:
+  bot:
+    build: .
+    container_name: ${SERVICE_NAME}
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+#    command: ["uvicorn", "main:app", "--port", "8000", , "--reload"]
+    command: ["python3", "main.py"]
+    ports:
+      - "${SERVICE_PORT}:8000"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - ${EXPOSE_REDIS}:6379
+    volumes:
+      - redis_data:/data
+
+  db:
+    image: postgres:14
+    container_name: postgres_db
+    ports:
+      - ${EXPOSE_DB}:5432
+
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  celery_worker:
+    build: .
+    command: celery -A app.services.celery.tasks worker --loglevel=info --concurrency=1 --queues=example_queue
+
+  celery_beat:
+    build: .
+    command: celery -A app.services.celery.tasks beat -l INFO
+
+volumes:
+  db_data:
+  redis_data:
